@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *.pyo
 
+# Node
+node_modules/
+package-lock.json
+
 # macOS
 .DS_Store
 
@@ -12,4 +16,5 @@ __pycache__/
 *.swp
 
 # Screenshots/test artifacts
+screenshots/
 *.png
