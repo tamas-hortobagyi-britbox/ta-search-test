@@ -1,0 +1,395 @@
+{
+  "info": {
+    "_postman_id": "03fca6fb-0695-4b1e-85d6-1b3e7ffc802e",
+    "name": "ThinkAnalytics",
+    "description": "NordLayer Secure server must be active to use this API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "45648124",
+    "_collection_link": "https://go.postman.co/collection/45648124-03fca6fb-0695-4b1e-85d6-1b3e7ffc802e?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "UsecaseInfo/List",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{host}}:{{port}}/composer/usecaseinfo/list",
+          "host": [
+            "{{host}}"
+          ],
+          "port": "{{port}}",
+          "path": [
+            "composer",
+            "usecaseinfo",
+            "list"
+          ]
+        },
+        "description": "Returns with all the published use cases."
+      },
+      "response": []
+    },
+    {
+      "name": "TA_Test/Search",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Request Item Ddata via Rocket API GET /items/{id}",
+              "// The selected TA environment `rocketItemQuery` variable points to the matching D3/Rocket environment.",
+              "const getItemData = async (id, params = \"\") => {",
+              "    const request = {",
+              "        url: pm.environment.get(\"rocketItemQuery\").split(\"[ID]\").join(id) + params,",
+              "        method: 'GET',",
+              "        header: {",
+              "            'Content-Type': 'application/json'",
+              "        }",
+              "    };",
+              "    const result = await pm.sendRequest(request);",
+              "",
+              "    if (result.code == 200) return result.json();",
+              "",
+              "    return undefined;",
+              "}",
+              "",
+              "// Transform the result to readible titles in order.",
+              "if (pm.response.code == 200) {",
+              "    const result = pm.response.json();",
+              "    const recommendation = result.recommendationsResult?.recommendations?.recommendation;",
+              "",
+              "    if (recommendation) {",
+              "        const request = pm.request?.body?.raw ? JSON.parse(pm.request.body.raw) : undefined;",
+              "        if (recommendation.length > 0) {",
+              "        let rocketQueryParams = \"\";",
+              "        if (request) {",
+              "            if (request.requestParameters?.region) {",
+              "                rocketQueryParams += \"&segments=\" + request.requestParameters.region;",
+              "            }",
+              "            rocketQueryParams += \"&sub=\" + request.requestParameters?.product?.[0] || \"Premier\";",
+              "        }",
+              "",
+              "            const resultTitles = [];",
+              "            recommendation.forEach(async (item, i) => {",
+              "                if (item?.contentItemId) {",
+              "                    const itemId = request.requestParameters?.seriesFilter == \"episode\" ?",
+              "                        item.contentItemId :",
+              "                        item.seriesId || item.contentItemId;",
+              "                    const data = item.contentItemName",
+              "                        ? {title: item.contentItemName, type: (item.campaignType == \"SERIES\" ? \"show\" : \"movie\") } ",
+              "                        : await getItemData(itemId, rocketQueryParams);",
+              "                    ",
+              "                    resultTitles[i] = data?.title ? (data.title + ` (${data.type}: ${itemId})${item.contentItemGroup ? \" - \" + item.contentItemGroup.contentItemGroupId : \"\"}`) : \"Error: \" + itemId;",
+              "",
+              "                    // Print only when all fields are filled - .find(), .indexOf() don't work.",
+              "                    if (resultTitles.length == recommendation.length && resultTitles.findIndex((x) => x === undefined) == -1) {",
+              "                        if (pm.request?.body?.raw && request.requestParameters?.term) {",
+              "                            console.log(\"Term: \" + request.requestParameters.term);",
+              "                        }",
+              "                        ",
+              "                        console.log(resultTitles); // titles in the same order as received",
+              "                    }",
+              "                }",
+              "            });",
+              "        } else {",
+              "            console.log((request.requestParameters?.term ? \"Term: \" + request.requestParameters?.term : \"\") + \" -> ZERO RESULT\");",
+              "        }",
+              "    }",
+              "}",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {
+          "accept": true,
+          "connection": true
+        }
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"requestParameters\": {\n        \"term\": \"jodie~ comer~\",\n        \"searchField\": [\"exact_people\", \"exact_title\", \"title\", \"people\"],\n        // \"product\": [\"subscriber\"],\n        // \"seriesFilter\": \"episode\",\n        // \"channelNumber\": [\"us_subscriber\"],\n        \"maxResults\": 20,\n        \"deviceType\": \"1\",\n        \"clientType\": 100,\n        \"countryCode\": \"us\",\n        \"region\": \"us\",\n        \"tz\": \"America/New_York\"\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{host}}:{{port}}/composer/usecase/{{searchUseCase}}?userId=canta",
+          "host": [
+            "{{host}}"
+          ],
+          "port": "{{port}}",
+          "path": [
+            "composer",
+            "usecase",
+            "{{searchUseCase}}"
+          ],
+          "query": [
+            {
+              "key": "userId",
+              "value": "canta"
+            }
+          ]
+        },
+        "description": "This is a test use case for search, to see how it works."
+      },
+      "response": []
+    },
+    {
+      "name": "TEST/VOD_Suggester",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"requestParameters\": {\n        \"language\": \"en-US\",\n        \"term\": \"fa\"\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{host}}:{{port}}/composer/usecase/TEST%2FVOD_Suggester?userId=abc",
+          "host": [
+            "{{host}}"
+          ],
+          "port": "{{port}}",
+          "path": [
+            "composer",
+            "usecase",
+            "TEST%2FVOD_Suggester"
+          ],
+          "query": [
+            {
+              "key": "userId",
+              "value": "abc"
+            }
+          ]
+        },
+        "description": "Auto completion endpoint (test only) for VOD search."
+      },
+      "response": []
+    },
+    {
+      "name": "ThinkComposer UseCase",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Request Item Ddata via Rocket API GET /items/{id}",
+              "// The selected TA environment `rocketItemQuery` variable points to the matching D3/Rocket environment.",
+              "const getItemData = async (id) => {",
+              "    const request = {",
+              "        url: pm.environment.get(\"rocketItemQuery\").split(\"[ID]\").join(id),",
+              "        method: 'GET',",
+              "        header: {",
+              "            'Content-Type': 'application/json'",
+              "        }",
+              "    };",
+              "    const result = await pm.sendRequest(request);",
+              "",
+              "    if (result.code == 200) return result.json();",
+              "",
+              "    return undefined;",
+              "}",
+              "",
+              "// Transform the result to readible titles in order.",
+              "if (pm.response.code == 200) {",
+              "    const result = pm.response.json();",
+              "    const recommendation = result.recommendationsResult?.recommendations?.recommendation;",
+              "",
+              "    if (recommendation) {",
+              "        if (recommendation.length > 0) {",
+              "            const resultTitles = [];",
+              "            recommendation.forEach(async (item, i) => {",
+              "                if (item?.contentItemId) {",
+              "                    const itemId = item.seriesId || item.contentItemId;",
+              "                    const data = item.contentItemName",
+              "                        ? {title: item.contentItemName, type: (item.campaignType == \"SERIES\" ? \"show\" : (item.campaignType == \"ITEM\" && item.seriesId ? \"episode\" : \"movie\")) } ",
+              "                        : await getItemData(itemId);",
+              "                    ",
+              "                    resultTitles[i] = data?.title ? (data.title + ` (${data.type}: ${itemId})${item.contentItemGroup ? \" - \" + item.contentItemGroup.contentItemGroupId : \"\"}`) : \"Error: \" + itemId;",
+              "",
+              "                    // Print only when all fields are filled - .find(), .indexOf() don't work.",
+              "                    if (resultTitles.length == recommendation.length && resultTitles.findIndex((x) => x === undefined) == -1) {",
+              "                        if (pm.request?.body?.raw) {",
+              "                            const request = JSON.parse(pm.request.body.raw);",
+              "                            if (request.requestParameters?.term) {",
+              "                                console.log(\"Term: \" + request.requestParameters?.term);",
+              "                            }",
+              "                        }",
+              "                        ",
+              "                        console.log(resultTitles); // titles in the same order as received",
+              "                    }",
+              "                }",
+              "            });",
+              "        } else {",
+              "            console.log(\"ZERO RESULT\");",
+              "        }",
+              "    }",
+              "}",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"requestParameters\": {\n        \"product\": [\"subscriber\"],\n        \"contentItemId\": \"{{contentID}}\",\n        \"clientType\": \"1\",\n        \"deviceType\": \"1\",\n        \"countryCode\": \"us\",\n        \"region\": \"us\",\n        \"tz\": \"America/New_York\"\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{host}}:{{port}}/composer/usecase/{{usecase}}?userId={{userId}}",
+          "host": [
+            "{{host}}"
+          ],
+          "port": "{{port}}",
+          "path": [
+            "composer",
+            "usecase",
+            "{{usecase}}"
+          ],
+          "query": [
+            {
+              "key": "userId",
+              "value": "{{userId}}",
+              "description": "Mandatory and by TA's documents must be a valid user ID. But: It works with any values."
+            }
+          ]
+        },
+        "description": "Generic endpoint to check any usecases. The body parameters need to be edited according to the tested usecase.\n\nExample use case: Home/RecsForYou"
+      },
+      "response": []
+    },
+    {
+      "name": "Learn Action -  Add to WatchList",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"contentItemId\": \"p0jszz26\",\n    \"clientType\": \"1\",\n    \"deviceType\": \"1\",\n    \"countryCode\": \"us\",\n    \"region\": \"us\",\n    \"tz\": \"America/New_York\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{host}}:{{port}}/composer/usecase/learn%2FAddToWatchlistVod?userId=250610090647460556",
+          "host": [
+            "{{host}}"
+          ],
+          "port": "{{port}}",
+          "path": [
+            "composer",
+            "usecase",
+            "learn%2FAddToWatchlistVod"
+          ],
+          "query": [
+            {
+              "key": "userId",
+              "value": "250610090647460556"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Don't use, temporary request",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://britbox-prod-cre-internal.thinkanalytics.cloud:8443/composer/usecase/TEST%2Fwatchlist_Suggestions?userId=EVG-cfd0fe3c10294515a4f5fabdd49be7\n--header Accept:",
+          "protocol": "https",
+          "host": [
+            "britbox-prod-cre-internal",
+            "thinkanalytics",
+            "cloud"
+          ],
+          "port": "8443",
+          "path": [
+            "composer",
+            "usecase",
+            "TEST%2Fwatchlist_Suggestions"
+          ],
+          "query": [
+            {
+              "key": "userId",
+              "value": "EVG-cfd0fe3c10294515a4f5fabdd49be7\n--header Accept:"
+            }
+          ]
+        },
+        "description": "Generated from cURL: curl --location\nhttps://britbox-prod-cre-internal.thinkanalytics.cloud:8443/composer/usecase/TEST%2Fwatchlist_Suggestions?userId=EVG-cfd0fe3c10294515a4f5fabdd49be7'\n--header 'Accept: application/json'\n--header 'Content-Type: application/json'\n--data '{\n\\\"requestParameters\\\": {\n\\\"maxResults\\\": 20, \n\\\"deviceType\\\": \\\"15\\\"\n\\\"countryCode\\\": \\\"us\\\",\n\\\"region\\\": \\\"us\\\", \n\\\"product\\\": [\\\"subscriber\\\"], \n\\\"tz\\\": \\\"America/New_York\\\",\n\\\"clientType\\\"：110\n}\n}'"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "usecase",
+      "value": "",
+      "type": "default"
+    }
+  ]
+}

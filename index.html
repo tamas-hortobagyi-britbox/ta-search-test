@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TA Search Test</title>
+    <style>
+        /* Theme colors */
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2a2a2a;
+            --bg-input: #333;
+            --text-primary: #e0e0e0;
+            --text-muted: #888;
+            --accent: #4a9eff;
+            --error: #ff6b6b;
+            --border: #444;
+        }
+
+        /* Reset & base */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        /* Layout */
+        header {
+            background: var(--bg-secondary);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        header h1 {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        section {
+            margin-bottom: 1.5rem;
+        }
+
+        /* Config panel */
+        details {
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        summary {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        summary:hover {
+            color: var(--text-primary);
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+            padding-top: 0;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, textarea {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* Search form */
+        #search {
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            padding: 1rem;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .search-row input {
+            flex: 1;
+        }
+
+        button {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 0.5rem 1.5rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8125rem;
+            resize: vertical;
+        }
+
+        /* Progress */
+        #progress {
+            display: none;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        #progress.visible {
+            display: block;
+        }
+
+        .progress-text {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error */
+        #error {
+            display: none;
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid var(--error);
+            border-radius: 6px;
+            padding: 1rem;
+        }
+
+        #error.visible {
+            display: block;
+        }
+
+        #error h3 {
+            color: var(--error);
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        #error pre {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        /* Results grid */
+        #results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+
+        .result-card {
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .result-card img {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            background: var(--bg-input);
+        }
+
+        .result-card .title {
+            padding: 0.75rem;
+            font-size: 0.8125rem;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .result-card .title.loading {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>TA Search Test</h1>
+    </header>
+    <main>
+        <section id="config">
+            <details open>
+                <summary>Environment Configuration</summary>
+                <div class="config-grid">
+                    <div class="field">
+                        <label for="cfg-host">Host</label>
+                        <input type="text" id="cfg-host" value="https://britbox-stage-cre-public.thinkanalytics.cloud">
+                    </div>
+                    <div class="field">
+                        <label for="cfg-port">Port</label>
+                        <input type="text" id="cfg-port" value="8443">
+                    </div>
+                    <div class="field">
+                        <label for="cfg-rocket">Rocket Item Query</label>
+                        <input type="text" id="cfg-rocket" value="https://stag-rocket.bbc-massive.com/items/[ID]?use_custom_id=true&device=web_browser&segments=us">
+                    </div>
+                    <div class="field">
+                        <label for="cfg-usecase">Search Use Case</label>
+                        <input type="text" id="cfg-usecase" value="TA_Test%2FSearchD3">
+                    </div>
+                </div>
+            </details>
+        </section>
+
+        <section id="search">
+            <div class="search-row">
+                <input type="text" id="search-term" placeholder="Enter search term...">
+                <button id="search-btn" disabled>Search</button>
+            </div>
+            <div class="field">
+                <label for="search-body">Request Body (JSON)</label>
+                <textarea id="search-body">{
+    "requestParameters": {
+        "term": "",
+        "searchField": ["exact_people", "exact_title", "title", "people"],
+        "maxResults": 20,
+        "deviceType": "1",
+        "clientType": 100,
+        "countryCode": "us",
+        "region": "us",
+        "tz": "America/New_York"
+    }
+}</textarea>
+            </div>
+        </section>
+
+        <section id="progress">
+            <div class="progress-text">
+                <div class="spinner"></div>
+                <span id="progress-text">Searching...</span>
+            </div>
+        </section>
+
+        <section id="error">
+            <h3>Error</h3>
+            <pre id="error-text"></pre>
+        </section>
+
+        <section id="results"></section>
+    </main>
+
+    <script>
+        // DOM elements
+        const searchTermInput = document.getElementById('search-term');
+        const searchBtn = document.getElementById('search-btn');
+        const searchBodyTextarea = document.getElementById('search-body');
+        const progressSection = document.getElementById('progress');
+        const progressText = document.getElementById('progress-text');
+        const errorSection = document.getElementById('error');
+        const errorText = document.getElementById('error-text');
+        const resultsSection = document.getElementById('results');
+
+        // Config getters
+        function getConfig() {
+            return {
+                host: document.getElementById('cfg-host').value,
+                port: document.getElementById('cfg-port').value,
+                rocketItemQuery: document.getElementById('cfg-rocket').value,
+                searchUseCase: document.getElementById('cfg-usecase').value
+            };
+        }
+
+        // AbortController for request cancellation
+        let abortController = null;
+
+        // Enable/disable search button based on input
+        searchTermInput.addEventListener('input', () => {
+            searchBtn.disabled = !searchTermInput.value.trim();
+        });
+
+        // Search on Enter key
+        searchTermInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && searchTermInput.value.trim()) {
+                performSearch();
+            }
+        });
+
+        // Search button click
+        searchBtn.addEventListener('click', performSearch);
+
+        // Transform image URL: remove Height, set Width to 400
+        function transformImageUrl(originalUrl) {
+            if (!originalUrl) return '';
+            try {
+                const url = new URL(originalUrl);
+                url.searchParams.delete('Height');
+                url.searchParams.set('Width', '400');
+                return url.toString();
+            } catch {
+                return originalUrl;
+            }
+        }
+
+        // Show error
+        function showError(message, details = '') {
+            errorSection.classList.add('visible');
+            errorText.textContent = details ? `${message}\n\n${details}` : message;
+        }
+
+        // Hide error
+        function hideError() {
+            errorSection.classList.remove('visible');
+            errorText.textContent = '';
+        }
+
+        // Show progress
+        function showProgress(text) {
+            progressSection.classList.add('visible');
+            progressText.textContent = text;
+        }
+
+        // Hide progress
+        function hideProgress() {
+            progressSection.classList.remove('visible');
+        }
+
+        // Clear results
+        function clearResults() {
+            resultsSection.replaceChildren();
+        }
+
+        // Create result card using DOM methods (safe, no innerHTML)
+        function createResultCard(itemId) {
+            const card = document.createElement('div');
+            card.className = 'result-card';
+            card.dataset.itemId = itemId;
+
+            const img = document.createElement('img');
+            img.src = '';
+            img.alt = '';
+            card.appendChild(img);
+
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'title loading';
+            titleDiv.textContent = 'Loading...';
+            card.appendChild(titleDiv);
+
+            return card;
+        }
+
+        // Update result card with data
+        function updateResultCard(itemId, title, imageUrl) {
+            const card = resultsSection.querySelector(`[data-item-id="${itemId}"]`);
+            if (!card) return;
+
+            const img = card.querySelector('img');
+            const titleEl = card.querySelector('.title');
+
+            if (imageUrl) {
+                img.src = transformImageUrl(imageUrl);
+                img.alt = title;
+            }
+            titleEl.textContent = title || 'Untitled';
+            titleEl.classList.remove('loading');
+        }
+
+        // Fetch item details from Rocket API (via proxy to avoid CORS)
+        async function fetchItemDetails(itemId, signal) {
+            const config = getConfig();
+            const targetUrl = config.rocketItemQuery.replace('[ID]', itemId);
+            const url = `/proxy/${targetUrl}`;
+
+            try {
+                const response = await fetch(url, { signal });
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const data = await response.json();
+                // images is an object with keys: tile, poster, wallpaper, etc.
+                const imageUrl = data.images?.tile || data.images?.wallpaper || data.images?.poster || '';
+                return {
+                    title: data.title || data.name || 'Untitled',
+                    imageUrl
+                };
+            } catch (err) {
+                if (err.name === 'AbortError') throw err;
+                console.warn(`Failed to fetch item ${itemId}:`, err);
+                return { title: `Item ${itemId}`, imageUrl: '' };
+            }
+        }
+
+        // Main search function
+        async function performSearch() {
+            // Cancel any in-flight requests
+            if (abortController) {
+                abortController.abort();
+            }
+            abortController = new AbortController();
+            const signal = abortController.signal;
+
+            // Clear UI
+            hideError();
+            clearResults();
+
+            const searchTerm = searchTermInput.value.trim();
+            if (!searchTerm) return;
+
+            // Parse and update request body with search term
+            let requestBody;
+            try {
+                requestBody = JSON.parse(searchBodyTextarea.value);
+                requestBody.requestParameters.term = searchTerm;
+            } catch (err) {
+                showError('Invalid JSON in request body', err.message);
+                return;
+            }
+
+            const config = getConfig();
+            const targetUrl = `${config.host}:${config.port}/composer/usecase/${config.searchUseCase}?userId=canta`;
+            const url = `/proxy/${targetUrl}`;
+
+            showProgress('Searching...');
+
+            try {
+                // Execute search API call (via proxy to avoid CORS)
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody),
+                    signal
+                });
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${text}`);
+                }
+
+                const data = await response.json();
+
+                // Extract recommendations
+                const recommendations = data?.recommendationsResult?.recommendations?.recommendation || [];
+
+                if (recommendations.length === 0) {
+                    hideProgress();
+                    showError('No results found');
+                    return;
+                }
+
+                showProgress(`Found ${recommendations.length} results. Loading details...`);
+
+                // Create cards for each result
+                const itemsToFetch = [];
+                recommendations.forEach((item, index) => {
+                    const itemId = item.seriesId || item.contentItemId;
+                    if (!itemId) return;
+
+                    const card = createResultCard(itemId);
+                    resultsSection.appendChild(card);
+
+                    // If contentItemName exists, use it directly
+                    if (item.contentItemName) {
+                        updateResultCard(itemId, item.contentItemName, item.imageUrl || '');
+                    } else {
+                        itemsToFetch.push({ itemId, index });
+                    }
+                });
+
+                // Fetch remaining item details in parallel
+                if (itemsToFetch.length > 0) {
+                    let completed = 0;
+                    const total = itemsToFetch.length;
+
+                    const fetchPromises = itemsToFetch.map(async ({ itemId }) => {
+                        try {
+                            const details = await fetchItemDetails(itemId, signal);
+                            updateResultCard(itemId, details.title, details.imageUrl);
+                        } finally {
+                            completed++;
+                            showProgress(`Loading item details: ${completed}/${total}`);
+                        }
+                    });
+
+                    await Promise.all(fetchPromises);
+                }
+
+                hideProgress();
+
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    // Request was cancelled, ignore
+                    return;
+                }
+                hideProgress();
+                showError('Search failed', err.message);
+            }
+        }
+    </script>
+</body>
+</html>
