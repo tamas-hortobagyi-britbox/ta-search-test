@@ -35,7 +35,7 @@
         /* Layout */
         header {
             background: var(--bg-secondary);
-            padding: 1rem 2rem;
+            padding: 0.5rem 2rem;
             border-bottom: 1px solid var(--border);
         }
 
@@ -255,7 +255,7 @@
     </header>
     <main>
         <section id="config">
-            <details open>
+            <details>
                 <summary>Environment Configuration</summary>
                 <div class="config-grid">
                     <div class="field">
@@ -268,7 +268,7 @@
                     </div>
                     <div class="field">
                         <label for="cfg-rocket">Rocket Item Query</label>
-                        <input type="text" id="cfg-rocket" value="https://stag-rocket.bbc-massive.com/items/[ID]?use_custom_id=true&device=web_browser&segments=us">
+                        <input type="text" id="cfg-rocket" value="https://rocket.us.britbox.com/items/[ID]?use_custom_id=true&device=web_browser&segments=us">
                     </div>
                     <div class="field">
                         <label for="cfg-usecase">Search Use Case</label>
@@ -288,8 +288,8 @@
                 <textarea id="search-body">{
     "requestParameters": {
         "term": "",
-        "searchField": ["exact_people", "exact_title", "title", "people"],
-        "maxResults": 20,
+        "searchField": ["title", "people"],
+        "maxResults": 10,
         "deviceType": "1",
         "clientType": 100,
         "countryCode": "us",
@@ -338,6 +338,74 @@
 
         // AbortController for request cancellation
         let abortController = null;
+
+        // Current search term for accuracy calculation
+        let currentSearchTerm = '';
+
+        // Levenshtein distance calculation
+        function levenshtein(a, b) {
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) {
+                matrix[i] = [i];
+            }
+            for (let j = 0; j <= a.length; j++) {
+                matrix[0][j] = j;
+            }
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b[i - 1] === a[j - 1]) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1,
+                            matrix[i][j - 1] + 1,
+                            matrix[i - 1][j] + 1
+                        );
+                    }
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+
+        // Calculate best match score between search term and target string
+        function bestMatch(search, target) {
+            if (!target) return 0;
+            const s = search.toLowerCase();
+            const t = target.toLowerCase();
+
+            // Exact match
+            if (t === s) return 1.0;
+
+            // Contains match (normalized)
+            if (t.includes(s)) {
+                return 0.8 + (0.2 * s.length / t.length);
+            }
+
+            // Levenshtein fallback for fuzzy matching
+            const distance = levenshtein(s, t);
+            const maxLen = Math.max(s.length, t.length);
+            return Math.max(0, 1 - (distance / maxLen));
+        }
+
+        // Calculate accuracy score for a result item
+        function calculateAccuracy(searchTerm, title, credits = []) {
+            // Check title match
+            const titleScore = bestMatch(searchTerm, title);
+
+            // Check credits match (find best matching person)
+            let bestCreditScore = 0;
+            for (const credit of credits) {
+                if (credit.name) {
+                    const score = bestMatch(searchTerm, credit.name);
+                    if (score > bestCreditScore) {
+                        bestCreditScore = score;
+                    }
+                }
+            }
+
+            // Return best of title or credit match as 0-100 integer
+            return Math.round(Math.max(titleScore, bestCreditScore) * 100);
+        }
 
         // Enable/disable search button based on input
         searchTermInput.addEventListener('input', () => {
@@ -414,8 +482,8 @@
             return card;
         }
 
-        // Update result card with data
-        function updateResultCard(itemId, title, imageUrl) {
+        // Update result card with data and accuracy score
+        function updateResultCard(itemId, title, imageUrl, credits = []) {
             const card = resultsSection.querySelector(`[data-item-id="${itemId}"]`);
             if (!card) return;
 
@@ -426,7 +494,10 @@
                 img.src = transformImageUrl(imageUrl);
                 img.alt = title;
             }
-            titleEl.textContent = title || 'Untitled';
+
+            // Calculate and display accuracy score
+            const score = calculateAccuracy(currentSearchTerm, title, credits);
+            titleEl.textContent = `(${score}) ${title || 'Untitled'}`;
             titleEl.classList.remove('loading');
         }
 
@@ -446,12 +517,13 @@
                 const imageUrl = data.images?.tile || data.images?.wallpaper || data.images?.poster || '';
                 return {
                     title: data.title || data.name || 'Untitled',
-                    imageUrl
+                    imageUrl,
+                    credits: data.credits || []
                 };
             } catch (err) {
                 if (err.name === 'AbortError') throw err;
                 console.warn(`Failed to fetch item ${itemId}:`, err);
-                return { title: `Item ${itemId}`, imageUrl: '' };
+                return { title: `Item ${itemId}`, imageUrl: '', credits: [] };
             }
         }
 
@@ -470,6 +542,9 @@
 
             const searchTerm = searchTermInput.value.trim();
             if (!searchTerm) return;
+
+            // Store for accuracy calculation
+            currentSearchTerm = searchTerm;
 
             // Parse and update request body with search term
             let requestBody;
@@ -542,7 +617,7 @@
                     const fetchPromises = itemsToFetch.map(async ({ itemId }) => {
                         try {
                             const details = await fetchItemDetails(itemId, signal);
-                            updateResultCard(itemId, details.title, details.imageUrl);
+                            updateResultCard(itemId, details.title, details.imageUrl, details.credits);
                         } finally {
                             completed++;
                             showProgress(`Loading item details: ${completed}/${total}`);
