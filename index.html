@@ -154,6 +154,14 @@
             resize: vertical;
         }
 
+        #search details {
+            margin-top: 1rem;
+        }
+
+        #search details textarea {
+            margin-top: 0.5rem;
+        }
+
         /* Progress */
         #progress {
             display: none;
@@ -283,8 +291,8 @@
                 <input type="text" id="search-term" placeholder="Enter search term...">
                 <button id="search-btn" disabled>Search</button>
             </div>
-            <div class="field">
-                <label for="search-body">Request Body (JSON)</label>
+            <details>
+                <summary>Request Body (JSON)</summary>
                 <textarea id="search-body">{
     "requestParameters": {
         "term": "",
@@ -297,7 +305,7 @@
         "tz": "America/New_York"
     }
 }</textarea>
-            </div>
+            </details>
         </section>
 
         <section id="progress">
@@ -390,13 +398,24 @@
         // Calculate accuracy score for a result item
         function calculateAccuracy(searchTerm, title, credits = []) {
             // Check title match
-            const titleScore = bestMatch(searchTerm, title);
+            const term = searchTerm.split("*").join("").trim(); // Remove wildcards for matching
+            const terms = term.split(" ");
+            let score = 0;
+            terms.forEach(t => {
+                score += bestMatch(t, title);
+            });
+            const titleScore = terms.length > 0 ? score / terms.length : 0; // bestMatch(searchTerm, title);
 
             // Check credits match (find best matching person)
             let bestCreditScore = 0;
             for (const credit of credits) {
                 if (credit.name) {
-                    const score = bestMatch(searchTerm, credit.name);
+                    let score = 0;
+                    terms.forEach(t => {
+                        score += bestMatch(t, credit.name);
+                    });
+                    score = terms.length > 0 ? score / terms.length : 0;
+                    // const score = bestMatch(searchTerm, credit.name);
                     if (score > bestCreditScore) {
                         bestCreditScore = score;
                     }
