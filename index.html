@@ -146,6 +146,30 @@
             cursor: not-allowed;
         }
 
+        .btn-secondary {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            border-radius: 4px;
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-secondary:hover {
+            opacity: 0.75;
+        }
+
+        #suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            min-height: 0;
+            margin-top: 0.5rem;
+        }
+
         textarea {
             width: 100%;
             min-height: 200px;
@@ -268,7 +292,7 @@
                 <div class="config-grid">
                     <div class="field">
                         <label for="cfg-host">Host</label>
-                        <input type="text" id="cfg-host" value="https://britbox-stage-cre-public.thinkanalytics.cloud">
+                        <input type="text" id="cfg-host" value="https://britbox-prod-cre-public.thinkanalytics.cloud">
                     </div>
                     <div class="field">
                         <label for="cfg-port">Port</label>
@@ -280,7 +304,11 @@
                     </div>
                     <div class="field">
                         <label for="cfg-usecase">Search Use Case</label>
-                        <input type="text" id="cfg-usecase" value="TA_Test%2FSearchD3">
+                        <input type="text" id="cfg-usecase" value="SEARCH%2FTASearch">
+                    </div>
+                    <div class="field">
+                        <label for="cfg-suggester">Suggester Use Case</label>
+                        <input type="text" id="cfg-suggester" value="TEST%2FVOD_Suggester">
                     </div>
                 </div>
             </details>
@@ -291,6 +319,7 @@
                 <input type="text" id="search-term" placeholder="Enter search term...">
                 <button id="search-btn" disabled>Search</button>
             </div>
+            <div id="suggestions"></div>
             <details>
                 <summary>Request Body (JSON)</summary>
                 <textarea id="search-body">{
@@ -340,7 +369,8 @@
                 host: document.getElementById('cfg-host').value,
                 port: document.getElementById('cfg-port').value,
                 rocketItemQuery: document.getElementById('cfg-rocket').value,
-                searchUseCase: document.getElementById('cfg-usecase').value
+                searchUseCase: document.getElementById('cfg-usecase').value,
+                suggesterUseCase: document.getElementById('cfg-suggester').value
             };
         }
 
@@ -349,6 +379,66 @@
 
         // Current search term for accuracy calculation
         let currentSearchTerm = '';
+
+        // Autosuggest state
+        let suggestAbortController = null;
+        let suggestDebounceTimer = null;
+
+        // Strip trailing * or ~ from search term before sending to suggester
+        function cleanTerm(term) {
+            return term.replace(/[*~]+$/, '');
+        }
+
+        // Clear suggestion buttons (safe DOM removal)
+        function clearSuggestions() {
+            const el = document.getElementById('suggestions');
+            while (el.firstChild) el.removeChild(el.firstChild);
+        }
+
+        // Render up to 5 suggestion buttons (XSS-safe: textContent only)
+        function renderSuggestions(items) {
+            clearSuggestions();
+            const el = document.getElementById('suggestions');
+            items.forEach(text => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-secondary';
+                btn.textContent = text;
+                btn.addEventListener('click', () => {
+                    searchTermInput.value = text;
+                    clearSuggestions();
+                    performSearch();
+                });
+                el.appendChild(btn);
+            });
+        }
+
+        // Fetch autosuggest results from the suggester use case
+        async function fetchSuggestions(rawTerm) {
+            const term = cleanTerm(rawTerm.trim());
+            if (!term) { clearSuggestions(); return; }
+
+            if (suggestAbortController) suggestAbortController.abort();
+            suggestAbortController = new AbortController();
+
+            const { host, port, suggesterUseCase } = getConfig();
+            const target = `${host}:${port}/composer/usecase/${suggesterUseCase}?userId=canta`;
+            const url = `/proxy/${target}`;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ requestParameters: { language: 'en-US', term } }),
+                    signal: suggestAbortController.signal
+                });
+                if (!response.ok) { clearSuggestions(); return; }
+                const data = await response.json();
+                const items = (data?.suggestionsResult?.suggestion ?? []).slice(0, 5);
+                renderSuggestions(items);
+            } catch (e) {
+                if (e.name !== 'AbortError') clearSuggestions();
+            }
+        }
 
         // Levenshtein distance calculation
         function levenshtein(a, b) {
@@ -426,9 +516,17 @@
             return Math.round(Math.max(titleScore, bestCreditScore) * 100);
         }
 
-        // Enable/disable search button based on input
+        // Enable/disable search button based on input; trigger autosuggest
         searchTermInput.addEventListener('input', () => {
-            searchBtn.disabled = !searchTermInput.value.trim();
+            const val = searchTermInput.value.trim();
+            searchBtn.disabled = !val;
+
+            clearTimeout(suggestDebounceTimer);
+            if (val) {
+                suggestDebounceTimer = setTimeout(() => fetchSuggestions(val), 300);
+            } else {
+                clearSuggestions();
+            }
         });
 
         // Search on Enter key
@@ -548,6 +646,10 @@
 
         // Main search function
         async function performSearch() {
+            // Clear suggestions and cancel any in-flight suggestion request
+            clearSuggestions();
+            if (suggestAbortController) suggestAbortController.abort();
+
             // Cancel any in-flight requests
             if (abortController) {
                 abortController.abort();

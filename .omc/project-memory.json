@@ -1,0 +1,75 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1774968718771,
+  "projectRoot": "/Users/tamas.hortobagyi/BritBox Dropbox/Tamas Hortobagyi/Mac/Documents/Projects/ta-search-test",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "playwright",
+        "version": "1.58.1",
+        "category": "testing"
+      }
+    ],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "documents": {
+      "path": "documents",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1774968718734,
+      "keyFiles": [
+        "ThinkAnalytics Stage.postman_environment.json",
+        "ThinkAnalytics.postman_collection-20206-02-05.json",
+        "requirements.md"
+      ]
+    },
+    "screenshots": {
+      "path": "screenshots",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1774968718735,
+      "keyFiles": []
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "index.html",
+      "accessCount": 8,
+      "lastAccessed": 1774969040892,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}
