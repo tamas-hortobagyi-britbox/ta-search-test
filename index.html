@@ -5,279 +5,525 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TA Search Test</title>
     <style>
-        /* Theme colors */
+        /* ── Tokens ─────────────────────────────────────────── */
         :root {
-            --bg-primary: #1a1a1a;
-            --bg-secondary: #2a2a2a;
-            --bg-input: #333;
-            --text-primary: #e0e0e0;
-            --text-muted: #888;
-            --accent: #4a9eff;
-            --error: #ff6b6b;
-            --border: #444;
+            --bg:             #070711;
+            --bg-surface:     rgba(255,255,255,0.03);
+            --bg-surface-2:   rgba(255,255,255,0.055);
+            --bg-input:       rgba(255,255,255,0.06);
+            --text:           #e2e8f0;
+            --text-muted:     #64748b;
+            --text-dim:       #6b84a0;
+            --accent:         #6366f1;
+            --accent-bright:  #818cf8;
+            --accent-glow:    rgba(99,102,241,0.35);
+            --error:          #f87171;
+            --border:         rgba(255,255,255,0.07);
+            --radius:         14px;
+            --radius-sm:      8px;
+            --radius-pill:    999px;
+            --blur:           blur(20px);
+            --ease:           0.2s cubic-bezier(0.4,0,0.2,1);
+            --spring:         0.3s cubic-bezier(0.34,1.56,0.64,1);
         }
 
-        /* Reset & base */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        /* ── Reset ───────────────────────────────────────────── */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
+        /* ── Scrollbar ───────────────────────────────────────── */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+
+        /* ── Base ────────────────────────────────────────────── */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            background-image:
+                radial-gradient(ellipse 80% 60% at 10% 0%,   rgba(99,102,241,0.09) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 90% 100%, rgba(139,92,246,0.07) 0%, transparent 60%);
+            color: var(--text);
             line-height: 1.5;
             min-height: 100vh;
         }
 
-        /* Layout */
+        /* ── Header ──────────────────────────────────────────── */
         header {
-            background: var(--bg-secondary);
-            padding: 0.5rem 2rem;
+            background: rgba(7,7,17,0.8);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            padding: 0.6rem 1.5rem;
             border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 50;
         }
 
         header h1 {
-            font-size: 1.25rem;
-            font-weight: 500;
-            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            background: linear-gradient(120deg, #818cf8 0%, #a78bfa 50%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: inline-block;
         }
 
-        main {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 1.5rem;
-        }
+        /* ── Layout ──────────────────────────────────────────── */
+        main { max-width: 1400px; margin: 0 auto; padding: 0.75rem 1rem; }
+        section { margin-bottom: 0.75rem; }
 
-        section {
-            margin-bottom: 1.5rem;
-        }
-
-        /* Config panel */
+        /* ── Config panel ────────────────────────────────────── */
         details {
-            background: var(--bg-secondary);
-            border-radius: 6px;
+            background: var(--bg-surface);
             border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            transition: border-color var(--ease);
         }
+
+        details:hover { border-color: rgba(255,255,255,0.11); }
 
         summary {
-            padding: 0.75rem 1rem;
+            padding: 0.45rem 0.75rem;
             cursor: pointer;
+            color: var(--text-dim);
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: color var(--ease);
+            user-select: none;
+        }
+        summary::-webkit-details-marker { display: none; }
+
+        summary::before {
+            content: '›';
+            font-size: 0.9rem;
+            line-height: 1;
+            transition: transform 0.2s ease;
             color: var(--text-muted);
-            font-size: 0.875rem;
         }
 
-        summary:hover {
-            color: var(--text-primary);
-        }
+        details[open] summary::before { transform: rotate(90deg); }
+        summary:hover { color: var(--text-muted); }
 
         .config-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1rem;
-            padding: 1rem;
-            padding-top: 0;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem 0.75rem;
         }
 
-        .field {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
+        .field { display: flex; flex-direction: column; gap: 0.2rem; }
 
         label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
+            font-size: 0.58rem;
+            color: var(--text-dim);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.07em;
+            font-weight: 600;
         }
 
         input, textarea {
             background: var(--bg-input);
             border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 0.5rem 0.75rem;
-            color: var(--text-primary);
-            font-size: 0.875rem;
+            border-radius: 6px;
+            padding: 0.3rem 0.5rem;
+            color: var(--text);
+            font-size: 0.7rem;
+            transition: border-color var(--ease), box-shadow var(--ease);
+            -webkit-appearance: none;
         }
 
         input:focus, textarea:focus {
             outline: none;
-            border-color: var(--accent);
+            border-color: rgba(99,102,241,0.55);
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.12), inset 0 1px 0 rgba(255,255,255,0.04);
         }
 
-        /* Search form */
+        /* ── Search section ──────────────────────────────────── */
         #search {
-            background: var(--bg-secondary);
-            border-radius: 6px;
+            background: var(--bg-surface);
             border: 1px solid var(--border);
-            padding: 1rem;
+            border-radius: var(--radius);
+            padding: 0.875rem 1rem;
+            position: relative;
+            overflow: hidden;
         }
 
-        .search-row {
-            display: flex;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
+        #search::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(135deg, rgba(99,102,241,0.04) 0%, transparent 55%);
+            pointer-events: none;
         }
+
+        .search-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
 
         .search-row input {
             flex: 1;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--radius-pill);
+            padding: 0.45rem 1rem;
+            font-size: 0.8rem;
         }
 
+        .search-row input:focus {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(99,102,241,0.65);
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.15), 0 1px 8px rgba(0,0,0,0.25);
+        }
+
+        .search-row input::placeholder { color: var(--text-dim); }
+
+        /* ── Buttons ─────────────────────────────────────────── */
         button {
-            background: var(--accent);
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
             color: #fff;
             border: none;
-            border-radius: 4px;
-            padding: 0.5rem 1.5rem;
-            font-size: 0.875rem;
+            border-radius: var(--radius-pill);
+            padding: 0.45rem 1.4rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
             cursor: pointer;
-            transition: opacity 0.2s;
+            transition: transform var(--ease), box-shadow var(--ease), opacity var(--ease);
+            box-shadow: 0 2px 12px rgba(99,102,241,0.4);
+            white-space: nowrap;
+            position: relative;
         }
 
         button:hover:not(:disabled) {
-            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(99,102,241,0.55);
         }
 
+        button:active:not(:disabled) { transform: translateY(0); }
+
         button:disabled {
-            opacity: 0.5;
+            opacity: 0.35;
             cursor: not-allowed;
+            box-shadow: none;
         }
 
         .btn-secondary {
-            background: transparent;
-            color: var(--accent);
-            border: 1px solid var(--accent);
-            border-radius: 4px;
-            padding: 0.4rem 1rem;
-            font-size: 0.8rem;
+            background: rgba(99,102,241,0.1);
+            color: var(--accent-bright);
+            border: 1px solid rgba(99,102,241,0.28);
+            border-radius: var(--radius-pill);
+            padding: 0.22rem 0.75rem;
+            font-size: 0.63rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: opacity 0.2s;
+            transition: background var(--ease), border-color var(--ease), transform var(--spring);
+            white-space: nowrap;
         }
 
         .btn-secondary:hover {
-            opacity: 0.75;
+            background: rgba(99,102,241,0.18);
+            border-color: rgba(99,102,241,0.5);
+            transform: translateY(-1px);
         }
 
+        /* ── Toggle ──────────────────────────────────────────── */
+        .search-options { margin-bottom: 0.45rem; }
+
+        .toggle-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.68rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            text-transform: none;
+            letter-spacing: normal;
+            transition: color var(--ease);
+        }
+
+        .toggle-label:hover { color: var(--text); }
+
+        .toggle-label input[type="checkbox"] {
+            -webkit-appearance: checkbox;
+            appearance: checkbox;
+            width: auto;
+            padding: 0;
+            border: none;
+            background: none;
+            box-shadow: none;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        /* ── Suggestions ─────────────────────────────────────── */
         #suggestions {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 0.5rem;
+            gap: 0.45rem;
             min-height: 0;
             margin-top: 0.5rem;
         }
 
+        /* ── Textarea ────────────────────────────────────────── */
         textarea {
             width: 100%;
-            min-height: 200px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.8125rem;
+            min-height: 120px;
+            font-family: 'Monaco', 'Menlo', 'Cascadia Code', monospace;
+            font-size: 0.65rem;
             resize: vertical;
         }
 
-        #search details {
-            margin-top: 1rem;
-        }
+        #search details { margin-top: 0.5rem; }
+        #search details textarea { margin-top: 0.35rem; }
 
-        #search details textarea {
-            margin-top: 0.5rem;
-        }
+        /* ── Progress ────────────────────────────────────────── */
+        #progress { display: none; color: var(--text-muted); font-size: 0.72rem; }
+        #progress.visible { display: block; }
 
-        /* Progress */
-        #progress {
-            display: none;
-            color: var(--text-muted);
-            font-size: 0.875rem;
-        }
-
-        #progress.visible {
-            display: block;
-        }
-
-        .progress-text {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+        .progress-text { display: flex; align-items: center; gap: 0.6rem; }
 
         .spinner {
             width: 14px;
             height: 14px;
-            border: 2px solid var(--border);
-            border-top-color: var(--accent);
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            border: 2px solid transparent;
+            border-top-color: var(--accent-bright);
+            border-right-color: rgba(99,102,241,0.3);
+            animation: spin 0.7s linear infinite;
+            flex-shrink: 0;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Error */
+        /* ── Error ───────────────────────────────────────────── */
         #error {
             display: none;
-            background: rgba(255, 107, 107, 0.1);
-            border: 1px solid var(--error);
-            border-radius: 6px;
-            padding: 1rem;
+            background: rgba(248,113,113,0.07);
+            border: 1px solid rgba(248,113,113,0.28);
+            border-radius: var(--radius-sm);
+            padding: 0.75rem 1rem;
+            animation: fadeIn 0.2s ease;
         }
 
-        #error.visible {
-            display: block;
-        }
+        #error.visible { display: block; }
 
         #error h3 {
             color: var(--error);
-            font-size: 0.875rem;
-            margin-bottom: 0.5rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
         }
 
         #error pre {
             font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.75rem;
-            color: var(--text-muted);
+            font-size: 0.68rem;
+            color: rgba(248,113,113,0.6);
             white-space: pre-wrap;
             word-break: break-all;
             max-height: 200px;
             overflow-y: auto;
         }
 
-        /* Results grid */
+        /* ── Results grid ────────────────────────────────────── */
         #results {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 0.75rem;
         }
 
+        /* ── Result cards ────────────────────────────────────── */
         .result-card {
-            background: var(--bg-secondary);
-            border-radius: 6px;
-            overflow: hidden;
+            background: var(--bg-surface);
             border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            transition: transform var(--spring), border-color var(--ease), box-shadow var(--ease);
+        }
+
+        /* Rank + type badge */
+        .result-badge {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            padding: 2px 6px;
+            border-radius: 4px;
+            line-height: 1.4;
+            font-size: 0.55rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .result-badge .rank { color: rgba(255,255,255,0.6); }
+        .result-badge .type-show  { color: #4ade80; }
+        .result-badge .type-movie { color: #facc15; }
+
+        .result-card:hover {
+            transform: translateY(-4px) scale(1.025);
+            border-color: rgba(99,102,241,0.55);
+            box-shadow:
+                0 8px 30px rgba(0,0,0,0.5),
+                0 0 0 1px rgba(99,102,241,0.2),
+                0 0 24px rgba(99,102,241,0.12);
         }
 
         .result-card img {
             width: 100%;
             aspect-ratio: 16 / 9;
             object-fit: cover;
-            background: var(--bg-input);
+            background-color: #0a0a18;
+            background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360'><path fill='%23050720' d='M0 0h640v360H0z'/><path fill='%23030518' d='M503 57h3l-4 2v2h2l14-2-4 1v2h2l6 3 1-2 2 3 4 1 4 4q2 6 6 8c6 6 6 6 7 9l-1 3v5l-1 2-3 21-1 5 10 3-1 23-1 3-1 4 3 1 6 7-3 1 41 24-2-1-2-2-3-1-4-5 1-1 14-15 7-8 10-11 21-26 4-3v243H402c6-22 6-22 13-28l2-5-4 2q-2-5 1-11l7-9 4-6-5 3c2-18 4-34 17-48l-6 4-1 1h-2q-2-9 4-15l2-3 2-4-4 4-2-1 4-23c3-22 3-22 11-30q7 0 13 5l3 2-2-3-2-1-4-5 3-2 53-27q-14 3-27 11l-3 1-3 2-8 3-10-11q1-4 4-5l2-2 2-1 3-2 7-5 2-2 8-4 2-2 15-9-14 6-2 2-7 5-4 1-5-11-4-4v-11q1-5-3-10v-11h-2l-2-4-2 3 1-8 1-6q0-3 2-5l5-2v-3c1-6 1-6 3-8h8l3-4v2h2l1-2q2-4 6-5l7-1z'/><path fill='%23142080' d='M56 126h279v44H56z'/><path fill='%23142080' opacity='0.85' d='M56 184h270v44H56z'/><path fill='%230b0f3d' d='M639 31h1l1 69c0 17 0 17-5 23l-5 4-17 19-6 9-19 21-2 1-3 5 12 8-2 1-5-2-2-2-3-2-4-1-28-18 3-2-2-4-6-2-1-2h2v-3l2-26h2q4-1 6-6l3-2 2-3 3-4 2-2 20-22 1-2 8-9 2-1 6-8h2l1-2 4-6 2-2 3-1 1-2q2-5 6-8l12-13z'/><path fill='%23142080' opacity='0.7' d='M56 242h196v34H56z'/><path fill='%23070a29' d='M639 117h1l1 68c0 14 0 14-3 19l-5 4-4 5-12 14-4 4-1 2h-2v-2c-1-19-1-19-9-36l-5-3-2-2-11-8 32-36 9-11 13-16z'/><path fill='%23050722' d='m511 160-2 1-55 29 2 1 2 2 1 1 2 2v2l-6-3-8-4-4 3q-8 16-10 34v7l-1 2-1 7 7-5q-1 6-6 10-4 6-4 14l9-7q0 4-3 7-9 11-11 25v2l-2 15 6-4q-1 6-6 10l-4 5-2 2-1 6v4l5-2-4 7-4 4q-4 6-5 12l-2 5v2l-2 4h-38l11-13 19-22 12-14c8-11 8-11 11-12l1-4v-6q2-13 6-24v-10l1-6q3-6 2-14c1-14 1-34 13-45l12-6 2-1 8-2 1-3 5-2q10-3 20-10c15-9 15-9 23-6'/><path fill='%233d46af' d='m511 160-2 1-55 29 2 1 2 2 1 1 2 2v2l-6-3-8-4-4 3q-8 16-10 34v7l-1 2-1 7 7-5q-1 6-6 10-4 6-4 14l9-7q0 4-3 7c-8 8-9 18-11 29l-1 4v3l-3 4-2 1c2-27 2-27 6-36q3-6 1-13l1-6q3-6 2-14c1-14 1-34 13-45l12-6 2-1 8-2 1-3 5-2q10-3 20-10c15-9 15-9 23-6'/><path fill='%231c216f' d='m437 239 1 2-4 6-1 2-4 5-1 5v4l9-7q0 4-3 7c-8 8-9 18-11 29l-1 4v3l-3 4-2 1c2-27 2-27 6-36q3-5 1-11 0-8 4-15l1 3q5-2 8-6'/><path fill='%231d2260' d='m483 58 2 1-2 2-5 9-1-2-3 1v-2l-4 1-2 12-7 3v7l-2 4v3l2-1 1 5h2l1-3v11q0 4 3 7v10q1 4-2 7v-2l-1-2-2-1 3-1v-8l-4-6-1-5v-5l-5-1-1-7h-2l2-9 2-2 1-5h2l2-6h1v5l2 1-1-3q0-6 2-7c4-4 4-4 9-4h3l1-2q1-3 4-5'/><path fill='%23333a9b' d='m511 160-2 1-55 29 2 1 2 2 1 1 2 2v2l-11-6 2-8 8-2 2-1 1-3 5-2q10-3 20-10c15-9 15-9 23-6'/><path fill='%230d103e' d='M426 301q0 5-4 8l-2 3-4 6q-2 2-2 6v4l5-2-3 4-1 3-4 4q-4 6-5 12l-2 5v2l-2 4h-2c5-23 5-23 8-28q3-6 3-13 1-5 4-9l1-7h4l1 2z'/><path fill='%23070927' d='M479 259q2 5-1 10l-7 24-1 2-9 31h-1q4-36 19-67'/><path fill='%2339419e' d='m504 134-1 1-40 27-5 3-3-1 12-10q4-1 6-6l-1-6q-3-4-1-7l3 5 1 3 1 5 2-1 10-6c12-8 12-8 16-7'/><path fill='%232f3388' d='m483 58 2 1-2 2-5 9-1-2-3 1v-2l-4 1-2 12-3 1q-4 1-5 4l-1 2h-3l-2 6-1-4 4-5 1-5h2l2-6h1v5l2 1-1-3q0-6 2-7c4-4 4-4 9-4h3l1-2q1-3 4-5'/><path fill='%23070826' d='M589 254v5l-1 3-1 4-15 38-1 2-1 3-3 3q7-30 22-58'/><path fill='%23111550' d='m558 165 2 1 3 2 7 5 2 1 4 3 7 3 2-1-1 3 12 8-2 1-5-2-2-2-3-2-4-1-28-18q5-3 6-1'/><path fill='%23121650' d='M426 301q0 5-4 8l-2 3-2 3-2 3-2 2h-2v7h-1q-1-9 4-17l1-7h4l1 2z'/><path fill='%232a318a' d='m429 217 1 2 2 2h2l-4 24q-2-3-2-7v-8z'/><path fill='%232b3188' d='m511 160-2 1-14 7-3 2-5 3-4 1v-2h2l-1-3c18-12 18-12 27-9'/><path fill='%2323297e' d='m437 239 1 2-4 6-2 3-4 5-1 5h-2l-1-8 4-10 1 3q5-2 8-6'/><path fill='%23171b62' d='m420 280 4 4-1 8v3l-1 2v3l-3 3-2 1z'/><path fill='%2335398e' d='m504 134-9 5-2 2-12 7-2-2 9-5 2-2 3-1 2-2 2-1 2-1z'/><path fill='%23282c79' d='m483 58 2 1-2 2-5 9-1-2-3 1-3-4h7l1-2q1-3 4-5'/><path fill='%231d2065' d='m511 160-15 7v-4q7-4 15-3'/><path fill='%23414bb8' d='m430 212 4 2c0 7 0 7-2 10l-2-4z'/><path fill='%23262b79' d='m451 188 4 1-1 1 2 1 2 2 1 1 2 2v2l-11-6z'/><path fill='%233840aa' d='M429 226h3v8l-2 5-1-8z'/><path fill='%23323b96' d='m429 217 1 2 2 2h2l-1 11q-4-5-4-11z'/><path fill='%2330398e' d='M467 117h1v9q1 4-2 7v-2l-1-2-2-1 3-1z'/><path fill='%233942a5' d='M432 203v2l3 3 1 2-1 6-4-4z'/><path fill='%23252676' d='m496 57-2 1-7 4-3 2-2 1 5-7z'/><path fill='%233d44a7' d='M459 81h2l-2 6h-3l-2 6-1-4 4-5h2z'/><path fill='%230c1045' d='M430 206h1l-2 17h-1v-9z'/><path fill='%23383e94' d='m458 89 2 4-1 1-1 7-2-1z'/><path fill='%2323266b' d='m504 134-9 5-2-2 6-3z'/><path fill='%23161952' d='M511 160c-5 3-5 3-9 3l-2-1q5-4 11-2'/><path fill='%231c2262' d='m462 110 6 7-2 4v-2l-4-6z'/></svg>");
+            background-size: cover;
+            background-repeat: no-repeat;
+            display: block;
+            transition: transform var(--ease);
         }
 
+        .result-card:hover img { transform: scale(1.04); }
+
         .result-card .title {
-            padding: 0.75rem;
-            font-size: 0.8125rem;
-            color: var(--text-primary);
+            padding: 0.4rem 0.5rem;
+            font-size: 0.63rem;
+            color: rgba(255,255,255,0.72);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.02), rgba(0,0,0,0.12));
+            border-top: 1px solid rgba(255,255,255,0.05);
         }
 
         .result-card .title.loading {
-            color: var(--text-muted);
+            color: var(--text-dim);
             font-style: italic;
+            animation: pulse 1.8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50%       { opacity: 0.9; }
+        }
+
+        /* ── Modal ───────────────────────────────────────────── */
+        #modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.72);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            z-index: 100;
+            cursor: pointer;
+        }
+
+        #modal-overlay.visible {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.18s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        #modal-box {
+            background: rgba(10,10,22,0.97);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 18px;
+            padding: 1.75rem;
+            max-width: 640px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            cursor: default;
+            position: relative;
+            box-shadow:
+                0 32px 80px rgba(0,0,0,0.65),
+                0 0 0 1px rgba(255,255,255,0.05),
+                0 0 60px rgba(99,102,241,0.08);
+            animation: slideUp 0.28s cubic-bezier(0.34,1.56,0.64,1);
+        }
+
+        /* Top shimmer line */
+        #modal-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 8%; right: 8%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(99,102,241,0.55), rgba(167,139,250,0.45), transparent);
+            border-radius: 0 0 1px 1px;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(24px) scale(0.96); opacity: 0; }
+            to   { transform: translateY(0)    scale(1);    opacity: 1; }
+        }
+
+        #modal-box h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--text);
+            letter-spacing: -0.02em;
+            line-height: 1.3;
+        }
+
+        #modal-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.65;
+            margin-bottom: 1.25rem;
+        }
+
+        .modal-section-label {
+            font-size: 0.58rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 700;
+            color: var(--text-dim);
+            margin-bottom: 0.6rem;
+            padding-bottom: 0.4rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-credit {
+            font-size: 0.78rem;
+            color: var(--text);
+            padding: 0.3rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            transition: color var(--ease);
+        }
+
+        .modal-credit:last-child { border-bottom: none; }
+        .modal-credit:hover { color: #fff; }
+
+        .modal-credit .credit-role { color: var(--text-muted); }
+
+        /* ── Highlight ───────────────────────────────────────── */
+        mark.highlight {
+            background: rgba(99,102,241,0.5);
+            color: #a5b4fc;
+            border-radius: 3px;
+            padding: 0 2px;
+            border-bottom: 1px solid rgba(99,102,241,0.5);
+            font-style: normal;
         }
     </style>
 </head>
@@ -320,13 +566,19 @@
                 <button id="search-btn" disabled>Search</button>
             </div>
             <div id="suggestions"></div>
+            <div class="search-options">
+                <label class="toggle-label">
+                    <input type="checkbox" id="enhanced-search">
+                    Enhanced Search
+                </label>
+            </div>
             <details>
                 <summary>Request Body (JSON)</summary>
                 <textarea id="search-body">{
     "requestParameters": {
         "term": "",
         "searchField": ["title", "people"],
-        "maxResults": 10,
+        "maxResults": 20,
         "deviceType": "1",
         "clientType": 100,
         "countryCode": "us",
@@ -352,6 +604,15 @@
         <section id="results"></section>
     </main>
 
+    <div id="modal-overlay">
+        <div id="modal-box">
+            <h2 id="modal-title"></h2>
+            <p id="modal-desc"></p>
+            <div id="modal-credits"></div>
+        </div>
+    </div>
+
+    <script src="termProcess.js"></script>
     <script>
         // DOM elements
         const searchTermInput = document.getElementById('search-term');
@@ -379,6 +640,9 @@
 
         // Current search term for accuracy calculation
         let currentSearchTerm = '';
+
+        // In-memory cache for item details (persists for the session)
+        const itemCache = new Map();
 
         // Autosuggest state
         let suggestAbortController = null;
@@ -580,15 +844,32 @@
             resultsSection.replaceChildren();
         }
 
+        const PLACEHOLDER_IMG_SRC = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360'><path fill='%23050720' d='M0 0h640v360H0z'/><path fill='%23030518' d='M503 57h3l-4 2v2h2l14-2-4 1v2h2l6 3 1-2 2 3 4 1 4 4q2 6 6 8c6 6 6 6 7 9l-1 3v5l-1 2-3 21-1 5 10 3-1 23-1 3-1 4 3 1 6 7-3 1 41 24-2-1-2-2-3-1-4-5 1-1 14-15 7-8 10-11 21-26 4-3v243H402c6-22 6-22 13-28l2-5-4 2q-2-5 1-11l7-9 4-6-5 3c2-18 4-34 17-48l-6 4-1 1h-2q-2-9 4-15l2-3 2-4-4 4-2-1 4-23c3-22 3-22 11-30q7 0 13 5l3 2-2-3-2-1-4-5 3-2 53-27q-14 3-27 11l-3 1-3 2-8 3-10-11q1-4 4-5l2-2 2-1 3-2 7-5 2-2 8-4 2-2 15-9-14 6-2 2-7 5-4 1-5-11-4-4v-11q1-5-3-10v-11h-2l-2-4-2 3 1-8 1-6q0-3 2-5l5-2v-3c1-6 1-6 3-8h8l3-4v2h2l1-2q2-4 6-5l7-1z'/><path fill='%23142080' d='M56 126h279v44H56z'/><path fill='%23142080' opacity='0.85' d='M56 184h270v44H56z'/><path fill='%230b0f3d' d='M639 31h1l1 69c0 17 0 17-5 23l-5 4-17 19-6 9-19 21-2 1-3 5 12 8-2 1-5-2-2-2-3-2-4-1-28-18 3-2-2-4-6-2-1-2h2v-3l2-26h2q4-1 6-6l3-2 2-3 3-4 2-2 20-22 1-2 8-9 2-1 6-8h2l1-2 4-6 2-2 3-1 1-2q2-5 6-8l12-13z'/><path fill='%23142080' opacity='0.7' d='M56 242h196v34H56z'/><path fill='%23070a29' d='M639 117h1l1 68c0 14 0 14-3 19l-5 4-4 5-12 14-4 4-1 2h-2v-2c-1-19-1-19-9-36l-5-3-2-2-11-8 32-36 9-11 13-16z'/><path fill='%23050722' d='m511 160-2 1-55 29 2 1 2 2 1 1 2 2v2l-6-3-8-4-4 3q-8 16-10 34v7l-1 2-1 7 7-5q-1 6-6 10-4 6-4 14l9-7q0 4-3 7-9 11-11 25v2l-2 15 6-4q-1 6-6 10l-4 5-2 2-1 6v4l5-2-4 7-4 4q-4 6-5 12l-2 5v2l-2 4h-38l11-13 19-22 12-14c8-11 8-11 11-12l1-4v-6q2-13 6-24v-10l1-6q3-6 2-14c1-14 1-34 13-45l12-6 2-1 8-2 1-3 5-2q10-3 20-10c15-9 15-9 23-6'/><path fill='%233d46af' d='m511 160-2 1-55 29 2 1 2 2 1 1 2 2v2l-6-3-8-4-4 3q-8 16-10 34v7l-1 2-1 7 7-5q-1 6-6 10-4 6-4 14l9-7q0 4-3 7c-8 8-9 18-11 29l-1 4v3l-3 4-2 1c2-27 2-27 6-36q3-6 1-13l1-6q3-6 2-14c1-14 1-34 13-45l12-6 2-1 8-2 1-3 5-2q10-3 20-10c15-9 15-9 23-6'/><path fill='%231c216f' d='m437 239 1 2-4 6-1 2-4 5-1 5v4l9-7q0 4-3 7c-8 8-9 18-11 29l-1 4v3l-3 4-2 1c2-27 2-27 6-36q3-5 1-11 0-8 4-15l1 3q5-2 8-6'/><path fill='%231d2260' d='m483 58 2 1-2 2-5 9-1-2-3 1v-2l-4 1-2 12-7 3v7l-2 4v3l2-1 1 5h2l1-3v11q0 4 3 7v10q1 4-2 7v-2l-1-2-2-1 3-1v-8l-4-6-1-5v-5l-5-1-1-7h-2l2-9 2-2 1-5h2l2-6h1v5l2 1-1-3q0-6 2-7c4-4 4-4 9-4h3l1-2q1-3 4-5'/><path fill='%23333a9b' d='m511 160-2 1-55 29 2 1 2 2 1 1 2 2v2l-11-6 2-8 8-2 2-1 1-3 5-2q10-3 20-10c15-9 15-9 23-6'/><path fill='%230d103e' d='M426 301q0 5-4 8l-2 3-4 6q-2 2-2 6v4l5-2-3 4-1 3-4 4q-4 6-5 12l-2 5v2l-2 4h-2c5-23 5-23 8-28q3-6 3-13 1-5 4-9l1-7h4l1 2z'/><path fill='%23070927' d='M479 259q2 5-1 10l-7 24-1 2-9 31h-1q4-36 19-67'/><path fill='%2339419e' d='m504 134-1 1-40 27-5 3-3-1 12-10q4-1 6-6l-1-6q-3-4-1-7l3 5 1 3 1 5 2-1 10-6c12-8 12-8 16-7'/><path fill='%232f3388' d='m483 58 2 1-2 2-5 9-1-2-3 1v-2l-4 1-2 12-3 1q-4 1-5 4l-1 2h-3l-2 6-1-4 4-5 1-5h2l2-6h1v5l2 1-1-3q0-6 2-7c4-4 4-4 9-4h3l1-2q1-3 4-5'/><path fill='%23070826' d='M589 254v5l-1 3-1 4-15 38-1 2-1 3-3 3q7-30 22-58'/><path fill='%23111550' d='m558 165 2 1 3 2 7 5 2 1 4 3 7 3 2-1-1 3 12 8-2 1-5-2-2-2-3-2-4-1-28-18q5-3 6-1'/><path fill='%23121650' d='M426 301q0 5-4 8l-2 3-2 3-2 3-2 2h-2v7h-1q-1-9 4-17l1-7h4l1 2z'/><path fill='%232a318a' d='m429 217 1 2 2 2h2l-4 24q-2-3-2-7v-8z'/><path fill='%232b3188' d='m511 160-2 1-14 7-3 2-5 3-4 1v-2h2l-1-3c18-12 18-12 27-9'/><path fill='%2323297e' d='m437 239 1 2-4 6-2 3-4 5-1 5h-2l-1-8 4-10 1 3q5-2 8-6'/><path fill='%23171b62' d='m420 280 4 4-1 8v3l-1 2v3l-3 3-2 1z'/><path fill='%2335398e' d='m504 134-9 5-2 2-12 7-2-2 9-5 2-2 3-1 2-2 2-1 2-1z'/><path fill='%23282c79' d='m483 58 2 1-2 2-5 9-1-2-3 1-3-4h7l1-2q1-3 4-5'/><path fill='%231d2065' d='m511 160-15 7v-4q7-4 15-3'/><path fill='%23414bb8' d='m430 212 4 2c0 7 0 7-2 10l-2-4z'/><path fill='%23262b79' d='m451 188 4 1-1 1 2 1 2 2 1 1 2 2v2l-11-6z'/><path fill='%233840aa' d='M429 226h3v8l-2 5-1-8z'/><path fill='%23323b96' d='m429 217 1 2 2 2h2l-1 11q-4-5-4-11z'/><path fill='%2330398e' d='M467 117h1v9q1 4-2 7v-2l-1-2-2-1 3-1z'/><path fill='%233942a5' d='M432 203v2l3 3 1 2-1 6-4-4z'/><path fill='%23252676' d='m496 57-2 1-7 4-3 2-2 1 5-7z'/><path fill='%233d44a7' d='M459 81h2l-2 6h-3l-2 6-1-4 4-5h2z'/><path fill='%230c1045' d='M430 206h1l-2 17h-1v-9z'/><path fill='%23383e94' d='m458 89 2 4-1 1-1 7-2-1z'/><path fill='%2323266b' d='m504 134-9 5-2-2 6-3z'/><path fill='%23161952' d='M511 160c-5 3-5 3-9 3l-2-1q5-4 11-2'/><path fill='%231c2262' d='m462 110 6 7-2 4v-2l-4-6z'/></svg>";
+
         // Create result card using DOM methods (safe, no innerHTML)
-        function createResultCard(itemId) {
+        function createResultCard(itemId, rank, itemType) {
             const card = document.createElement('div');
             card.className = 'result-card';
             card.dataset.itemId = itemId;
+            card.addEventListener('click', () => openModal(itemId));
+
+            const badge = document.createElement('div');
+            badge.className = 'result-badge';
+            const rankSpan = document.createElement('span');
+            rankSpan.className = 'rank';
+            rankSpan.textContent = rank;
+            badge.appendChild(rankSpan);
+            const typeSpan = document.createElement('span');
+            const isShow = itemType === 'show';
+            typeSpan.className = isShow ? 'type-show' : 'type-movie';
+            typeSpan.textContent = isShow ? '(S)' : '(M)';
+            badge.appendChild(typeSpan);
+            card.appendChild(badge);
 
             const img = document.createElement('img');
             img.src = '';
             img.alt = '';
+            img.onerror = () => { img.onerror = null; img.src = PLACEHOLDER_IMG_SRC; };
             card.appendChild(img);
 
             const titleDiv = document.createElement('div');
@@ -620,6 +901,8 @@
 
         // Fetch item details from Rocket API (via proxy to avoid CORS)
         async function fetchItemDetails(itemId, signal) {
+            if (itemCache.has(itemId)) return itemCache.get(itemId);
+
             const config = getConfig();
             const targetUrl = config.rocketItemQuery.replace('[ID]', itemId);
             const url = `/proxy/${targetUrl}`;
@@ -632,16 +915,220 @@
                 const data = await response.json();
                 // images is an object with keys: tile, poster, wallpaper, etc.
                 const imageUrl = data.images?.tile || data.images?.wallpaper || data.images?.poster || '';
-                return {
+                const result = {
                     title: data.title || data.name || 'Untitled',
                     imageUrl,
+                    description: data.description || data.shortDescription || data.synopsis || '',
                     credits: data.credits || []
                 };
+                itemCache.set(itemId, result);
+                return result;
             } catch (err) {
                 if (err.name === 'AbortError') throw err;
                 console.warn(`Failed to fetch item ${itemId}:`, err);
                 return { title: `Item ${itemId}`, imageUrl: '', credits: [] };
             }
+        }
+
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalTitleEl = document.getElementById('modal-title');
+        const modalDescEl = document.getElementById('modal-desc');
+        const modalCreditsEl = document.getElementById('modal-credits');
+
+        function closeModal() {
+            modalOverlay.classList.remove('visible');
+            delete modalOverlay.dataset.itemId;
+        }
+
+        function getSearchTerms() {
+            return currentSearchTerm.replace(/[*~]/g, '').trim().split(/\s+/).filter(Boolean).map(t => t.toLowerCase());
+        }
+
+        // Wu-Manber bit-parallel approximate substring search.
+        // Returns array of [start, end) ranges where pattern matches text with
+        // at most maxErrors insertions, deletions, or substitutions.
+        function wuManberRanges(text, pattern, maxErrors) {
+            const m = pattern.length;
+            if (m === 0) return [];
+
+            const tl = text.toLowerCase();
+            const pl = pattern.toLowerCase();
+
+            if (m > 31) {
+                // Bitwise ops are 32-bit; fall back to exact for very long patterns
+                const ranges = [];
+                let i = tl.indexOf(pl);
+                while (i !== -1) { ranges.push([i, i + m]); i = tl.indexOf(pl, i + 1); }
+                return ranges;
+            }
+
+            // Build bitmask: bit i of pm[c] is set iff pl[i] === c
+            const pm = Object.create(null);
+            for (let i = 0; i < m; i++) pm[pl[i]] = (pm[pl[i]] || 0) | (1 << i);
+
+            const MATCH = 1 << (m - 1);
+            const MASK  = (1 << m) - 1;
+            const R = new Array(maxErrors + 1).fill(0);
+            const ranges = [];
+
+            for (let pos = 0; pos < tl.length; pos++) {
+                const d = pm[tl[pos]] || 0;
+                const old = R.slice();
+
+                R[0] = ((old[0] << 1) | 1) & d & MASK;
+
+                for (let e = 1; e <= maxErrors; e++) {
+                    R[e] = (((old[e] << 1) | 1) & d)  // match or start
+                         | ((old[e-1] << 1) | 1)        // substitution
+                         | old[e-1]                      // text insertion (skip text char)
+                         | (R[e-1] << 1);               // pattern deletion (use updated R[e-1])
+                    R[e] &= MASK;
+                }
+
+                for (let e = 0; e <= maxErrors; e++) {
+                    if (R[e] & MATCH) {
+                        ranges.push([findMatchStart(tl, pl, pos, maxErrors), pos + 1]);
+                        break;
+                    }
+                }
+            }
+
+            return ranges;
+        }
+
+        // For a match ending at endPos, scan valid window lengths and pick the start
+        // with the lowest edit distance (prefer longer span on ties for better context).
+        function findMatchStart(text, pattern, endPos, k) {
+            const m = pattern.length;
+            let bestStart = Math.max(0, endPos - m + 1);
+            let bestDist = Infinity;
+            let bestLen = 0;
+            for (let len = Math.max(1, m - k); len <= m + k; len++) {
+                const s = endPos - len + 1;
+                if (s < 0) continue;
+                const dist = levenshtein(pattern, text.slice(s, endPos + 1));
+                if (dist < bestDist || (dist === bestDist && len > bestLen)) {
+                    bestDist = dist; bestStart = s; bestLen = len;
+                }
+            }
+            return bestStart;
+        }
+
+        // Allowed edit distance per term length: exact for short terms to avoid noise
+        function getErrorsForTerm(term) {
+            if (term.length <= 2) return 0;
+            if (term.length <= 6) return 1;
+            return 2;
+        }
+
+        function highlightText(text, terms) {
+            const fragment = document.createDocumentFragment();
+            if (!text || !terms.length) { fragment.appendChild(document.createTextNode(text || '')); return fragment; }
+            const ranges = [];
+            for (const term of terms) {
+                for (const r of wuManberRanges(text, term, getErrorsForTerm(term))) ranges.push(r);
+            }
+            if (!ranges.length) { fragment.appendChild(document.createTextNode(text)); return fragment; }
+            ranges.sort((a, b) => a[0] - b[0]);
+            const merged = [ranges[0]];
+            for (let i = 1; i < ranges.length; i++) {
+                const prev = merged[merged.length - 1];
+                if (ranges[i][0] <= prev[1]) prev[1] = Math.max(prev[1], ranges[i][1]);
+                else merged.push(ranges[i]);
+            }
+            let pos = 0;
+            for (const [s, e] of merged) {
+                if (pos < s) fragment.appendChild(document.createTextNode(text.slice(pos, s)));
+                const mark = document.createElement('mark');
+                mark.className = 'highlight';
+                mark.textContent = text.slice(s, e);
+                fragment.appendChild(mark);
+                pos = e;
+            }
+            if (pos < text.length) fragment.appendChild(document.createTextNode(text.slice(pos)));
+            return fragment;
+        }
+
+        function renderModalCredits(credits, terms) {
+            modalCreditsEl.replaceChildren();
+            if (!credits.length) return;
+
+            const label = document.createElement('div');
+            label.className = 'modal-section-label';
+            label.textContent = 'Cast & Crew';
+            modalCreditsEl.appendChild(label);
+
+            credits.forEach(credit => {
+                const row = document.createElement('div');
+                row.className = 'modal-credit';
+                row.appendChild(highlightText(credit.name || '', terms));
+                const jobTitle = credit.role || credit.creditType;
+                const character = credit.character;
+                if (jobTitle || character) {
+                    const meta = document.createElement('span');
+                    meta.className = 'credit-role';
+                    let text = jobTitle ? ` — ${jobTitle}` : '';
+                    if (character) text += ` — (${character})`;
+                    meta.textContent = text;
+                    row.appendChild(meta);
+                }
+                modalCreditsEl.appendChild(row);
+            });
+        }
+
+        function openModal(itemId) {
+            modalOverlay.dataset.itemId = itemId;
+            modalOverlay.classList.add('visible');
+
+            const terms = getSearchTerms();
+            const cached = itemCache.get(itemId);
+            if (cached) {
+                modalTitleEl.replaceChildren(highlightText(cached.title, terms));
+                modalDescEl.replaceChildren(highlightText(cached.description || '', terms));
+                renderModalCredits(cached.credits || [], terms);
+            } else {
+                // Item loaded via contentItemName path — show card title, fetch rest
+                const card = resultsSection.querySelector(`[data-item-id="${itemId}"]`);
+                modalTitleEl.textContent = card?.querySelector('.title')?.textContent || '';
+                modalDescEl.textContent = '';
+                modalCreditsEl.replaceChildren();
+                fetchItemDetails(itemId, null).then(details => {
+                    if (modalOverlay.dataset.itemId !== itemId) return;
+                    modalTitleEl.replaceChildren(highlightText(details.title, terms));
+                    modalDescEl.replaceChildren(highlightText(details.description || '', terms));
+                    renderModalCredits(details.credits || [], terms);
+                });
+            }
+        }
+
+        // Close on overlay click; stop propagation on the box itself
+        modalOverlay.addEventListener('click', closeModal);
+        document.getElementById('modal-box').addEventListener('click', e => e.stopPropagation());
+
+        function isEnhancedSearch() {
+            return document.getElementById('enhanced-search').checked;
+        }
+
+        // Merge prefix and fuzzy results: prefix is the base, fuzzy items that already
+        // exist are moved 1 step toward the front, new fuzzy items are appended.
+        function mergeResults(prefixRecs, fuzzyRecs) {
+            const toItem = item => ({ ...item, itemId: item.seriesId || item.contentItemId });
+            const prefixItems = prefixRecs.map(toItem).filter(i => i.itemId);
+            const fuzzyItems = fuzzyRecs.map(toItem).filter(i => i.itemId);
+
+            const merged = [...prefixItems];
+
+            for (const fuzzyItem of fuzzyItems) {
+                const idx = merged.findIndex(m => m.itemId === fuzzyItem.itemId);
+                if (idx > 0) {
+                    // Already present — move one step toward the front
+                    [merged[idx - 1], merged[idx]] = [merged[idx], merged[idx - 1]];
+                } else if (idx === -1) {
+                    merged.push(fuzzyItem);
+                }
+            }
+
+            return merged;
         }
 
         // Main search function
@@ -666,6 +1153,10 @@
 
             // Store for accuracy calculation
             currentSearchTerm = searchTerm;
+            const processedTermPrefix = processSearchTerm(searchTerm, processConfigPrefix);
+            const processedTermFuzzy = processSearchTerm(searchTerm, processConfigFuzzy);
+
+            console.log(`Input "${searchTerm}" -> Prefix: "${processedTermPrefix}" | Fuzzy: "${processedTermFuzzy}"`);
 
             // Parse and update request body with search term
             let requestBody;
@@ -681,29 +1172,59 @@
             const targetUrl = `${config.host}:${config.port}/composer/usecase/${config.searchUseCase}?userId=canta`;
             const url = `/proxy/${targetUrl}`;
 
-            showProgress('Searching...');
-
             try {
-                // Execute search API call (via proxy to avoid CORS)
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestBody),
-                    signal
-                });
+                let recommendations;
 
-                if (!response.ok) {
-                    const text = await response.text();
-                    throw new Error(`HTTP ${response.status}: ${text}`);
+                if (isEnhancedSearch()) {
+                    showProgress('Enhanced search: fetching...');
+
+                    const prefixBody = JSON.parse(JSON.stringify(requestBody));
+                    prefixBody.requestParameters.term = processedTermPrefix;
+                    const fuzzyBody = JSON.parse(JSON.stringify(requestBody));
+                    fuzzyBody.requestParameters.term = processedTermFuzzy;
+
+                    const headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+                    const [prefixResp, fuzzyResp] = await Promise.all([
+                        fetch(url, { method: 'POST', headers, body: JSON.stringify(prefixBody), signal }),
+                        fetch(url, { method: 'POST', headers, body: JSON.stringify(fuzzyBody), signal })
+                    ]);
+
+                    if (!prefixResp.ok) {
+                        const text = await prefixResp.text();
+                        throw new Error(`HTTP ${prefixResp.status}: ${text}`);
+                    }
+                    if (!fuzzyResp.ok) {
+                        const text = await fuzzyResp.text();
+                        throw new Error(`HTTP ${fuzzyResp.status}: ${text}`);
+                    }
+
+                    const [prefixData, fuzzyData] = await Promise.all([prefixResp.json(), fuzzyResp.json()]);
+                    const prefixRecs = prefixData?.recommendationsResult?.recommendations?.recommendation || [];
+                    const fuzzyRecs = fuzzyData?.recommendationsResult?.recommendations?.recommendation || [];
+
+                    recommendations = mergeResults(prefixRecs, fuzzyRecs);
+                } else {
+                    showProgress('Searching...');
+
+                    // Execute search API call (via proxy to avoid CORS)
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(requestBody),
+                        signal
+                    });
+
+                    if (!response.ok) {
+                        const text = await response.text();
+                        throw new Error(`HTTP ${response.status}: ${text}`);
+                    }
+
+                    const data = await response.json();
+                    recommendations = data?.recommendationsResult?.recommendations?.recommendation || [];
                 }
-
-                const data = await response.json();
-
-                // Extract recommendations
-                const recommendations = data?.recommendationsResult?.recommendations?.recommendation || [];
 
                 if (recommendations.length === 0) {
                     hideProgress();
@@ -715,15 +1236,17 @@
 
                 // Create cards for each result
                 const itemsToFetch = [];
+                let rank = 0;
                 recommendations.forEach((item, index) => {
                     const itemId = item.seriesId || item.contentItemId;
                     if (!itemId) return;
-
-                    const card = createResultCard(itemId);
+                    rank++;
+                    const itemType = item.seriesId ? 'show' : 'movie';
+                    const card = createResultCard(itemId, rank, itemType);
                     resultsSection.appendChild(card);
 
                     // If contentItemName exists, use it directly
-                    if (item.contentItemName) {
+                    if (item.contentItemName && item.imageUrl) {
                         updateResultCard(itemId, item.contentItemName, item.imageUrl || '');
                     } else {
                         itemsToFetch.push({ itemId, index });
