@@ -18,7 +18,14 @@
       "Bash(python3:*)",
       "Bash(npm install:*)",
       "Bash(node:*)",
-      "Bash(npx playwright:*)"
+      "Bash(npx playwright:*)",
+      "mcp__analytics-mcp-org-BritBox__peekAllLicenses",
+      "mcp__analytics-mcp-org-BritBox__getAvailableFilters",
+      "mcp__analytics-mcp-org-BritBox__queryGroupBy",
+      "mcp__analytics-mcp-org-BritBox__getImpressionOverview",
+      "mcp__analytics-mcp-org-BritBox__analyzeImpression",
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "mcp__plugin_context7_context7__query-docs"
     ]
   }
 }

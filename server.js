@@ -100,6 +100,7 @@ function proxyRequest(req, res, method) {
         });
 
         proxyReq.on('error', (err) => {
+            if (res.headersSent) return;
             const errorBody = JSON.stringify({ error: err.message });
             res.writeHead(502, corsHeaders({
                 'Content-Type': 'application/json',
